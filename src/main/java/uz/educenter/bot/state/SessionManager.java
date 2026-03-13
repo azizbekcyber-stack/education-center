@@ -1,13 +1,13 @@
 package uz.educenter.bot.state;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class SessionManager {
 
-    private final Map<Long, UserState> userStates = new HashMap<>();
-    private final Map<Long, PendingApplication> pendingApplications = new HashMap<>();
-    private final Map<Long, Boolean> adminSessions = new HashMap<>();
+    private final Map<Long, UserState> userStates = new ConcurrentHashMap<>();
+    private final Map<Long, PendingApplication> pendingApplications = new ConcurrentHashMap<>();
+    private final Map<Long, Boolean> adminSessions = new ConcurrentHashMap<>();
 
     public UserState getUserState(Long telegramId) {
         return userStates.getOrDefault(telegramId, UserState.NONE);
