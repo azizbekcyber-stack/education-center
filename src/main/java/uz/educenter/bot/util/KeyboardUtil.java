@@ -179,6 +179,42 @@ public class KeyboardUtil {
         markup.setKeyboard(rows);
         return markup;
     }
+    public static ReplyKeyboardMarkup cancelKeyboard() {
+        ReplyKeyboardMarkup markup = new ReplyKeyboardMarkup();
+        markup.setResizeKeyboard(true);
+        markup.setOneTimeKeyboard(true);
+
+        List<KeyboardRow> keyboard = new ArrayList<>();
+
+        KeyboardRow row = new KeyboardRow();
+        row.add("❌ Bekor qilish");
+
+        keyboard.add(row);
+        markup.setKeyboard(keyboard);
+        return markup;
+    }
+
+    public static ReplyKeyboardMarkup phoneRequestKeyboardWithCancel() {
+        KeyboardButton contactButton = new KeyboardButton("📱 Raqamni yuborish");
+        contactButton.setRequestContact(true);
+
+        KeyboardRow row1 = new KeyboardRow();
+        row1.add(contactButton);
+
+        KeyboardRow row2 = new KeyboardRow();
+        row2.add("❌ Bekor qilish");
+
+        List<KeyboardRow> rows = new ArrayList<>();
+        rows.add(row1);
+        rows.add(row2);
+
+        ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
+        keyboardMarkup.setResizeKeyboard(true);
+        keyboardMarkup.setOneTimeKeyboard(true);
+        keyboardMarkup.setKeyboard(rows);
+
+        return keyboardMarkup;
+    }
 
     public static InlineKeyboardMarkup applicationActionsKeyboard(Long applicationId) {
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();

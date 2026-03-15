@@ -36,7 +36,7 @@ public class EducationCenterBot extends TelegramLongPollingBot {
     private static final String BTN_ALL_APPLICATIONS = "📋 Barcha zayavkalar";
     private static final String BTN_ADMIN_LOGOUT = "🚪 Admin chiqish";
     private static final String BTN_MAIN_MENU = "🏠 Bosh menu";
-
+    private static final String BTN_CANCEL = "❌ Bekor qilish";
     private final String botUsername;
     private final String botToken;
 
@@ -110,7 +110,29 @@ public class EducationCenterBot extends TelegramLongPollingBot {
             return;
         }
 
+        if ("/cancel".equals(text) || BTN_CANCEL.equals(text)) {
+            if (isApplicationFlowActive(telegramId)) {
+                sessionManager.clearUserState(telegramId);
+                sessionManager.clearPendingApplication(telegramId);
+                sendMessage(chatId, "Jarayon bekor qilindi. ✅", KeyboardUtil.mainMenuKeyboard());
+            } else {
+                sendMessage(chatId, "Hozir bekor qilinadigan faol jarayon yo‘q.", KeyboardUtil.mainMenuKeyboard());
+            }
+            return;
+        }
+
         UserState currentState = sessionManager.getUserState(telegramId);
+
+        if (isApplicationInputState(currentState) && isBlockedDuringApplicationFlow(text)) {
+            sendMessage(
+                    chatId,
+                    "Siz hozir zayavka jarayonidasiz. Davom eting yoki ❌ Bekor qilish ni bosing.",
+                    currentState == UserState.WAITING_APPLICATION_PHONE
+                            ? KeyboardUtil.phoneRequestKeyboardWithCancel()
+                            : KeyboardUtil.cancelKeyboard()
+            );
+            return;
+        }
 
         if (currentState == UserState.WAITING_ADMIN_PASSWORD) {
             handleAdminPassword(chatId, telegramId, text);
@@ -223,7 +245,7 @@ public class EducationCenterBot extends TelegramLongPollingBot {
 
                 sessionManager.setUserState(telegramId, UserState.WAITING_APPLICATION_FULL_NAME);
                 answerCallback(callbackQuery.getId(), "Davom etamiz ✅");
-                sendMessage(chatId, "Ism-familyangizni kiriting: ⌨");
+                sendMessage(chatId, "Ism-familyangizni kiriting: ⌨", KeyboardUtil.cancelKeyboard());
                 return;
             }
 
@@ -304,7 +326,7 @@ public class EducationCenterBot extends TelegramLongPollingBot {
         sendMessage(
                 chatId,
                 "Telefon raqamingizni yuboring.\n \uD83D\uDCDE Pastdagi tugmani bosing yoki qo‘lda kiriting.\nMasalan: +998901234567",
-                KeyboardUtil.phoneRequestKeyboard()
+                KeyboardUtil.phoneRequestKeyboardWithCancel()
         );
     }
 
@@ -315,7 +337,7 @@ public class EducationCenterBot extends TelegramLongPollingBot {
             sendMessage(
                     chatId,
                     "❌ Telefon format noto‘g‘ri. Pastdagi tugma orqali yuboring yoki to‘g‘ri formatda kiriting.\nMasalan: +998901234567",
-                    KeyboardUtil.phoneRequestKeyboard()
+                    KeyboardUtil.phoneRequestKeyboardWithCancel()
             );
             return;
         }
@@ -347,7 +369,7 @@ public class EducationCenterBot extends TelegramLongPollingBot {
             sendMessage(
                     chatId,
                     "\uD83D\uDEA8 Telefon raqamini olishning imkoni bo‘lmadi. Qayta urinib ko‘ring yoki qo‘lda kiriting.",
-                    KeyboardUtil.phoneRequestKeyboard()
+                    KeyboardUtil.phoneRequestKeyboardWithCancel()
             );
             return;
         }
@@ -356,7 +378,7 @@ public class EducationCenterBot extends TelegramLongPollingBot {
             sendMessage(
                     chatId,
                     "\uD83D\uDE4F Iltimos, aynan o‘zingizning raqamingizni yuboring.",
-                    KeyboardUtil.phoneRequestKeyboard()
+                    KeyboardUtil.phoneRequestKeyboardWithCancel()
             );
             return;
         }
@@ -761,7 +783,33 @@ Bizning xizmatimizdan foydalanish uchun quyidagi bo‘limlardan birini tanlang:
             e.printStackTrace();
         }
     }
+    private boolean isApplicationFlowActive(Long telegramId) {
+        UserState state = sessionManager.getUserState(telegramId);
+        return state == UserState.WAITING_APPLICATION_FULL_NAME
+                || state == UserState.WAITING_APPLICATION_PHONE
+                || state == UserState.WAITING_APPLICATION_MESSAGE
+                || sessionManager.getPendingApplication(telegramId) != null;
+    }
 
+    private boolean isApplicationInputState(UserState state) {
+        return state == UserState.WAITING_APPLICATION_FULL_NAME
+                || state == UserState.WAITING_APPLICATION_PHONE
+                || state == UserState.WAITING_APPLICATION_MESSAGE;
+    }
+
+    private boolean isBlockedDuringApplicationFlow(String text) {
+        return BTN_COURSES.equals(text)
+                || BTN_PRICES.equals(text)
+                || BTN_LOCATION.equals(text)
+                || BTN_CONTACT.equals(text)
+                || BTN_APPLY.equals(text)
+                || BTN_ADMIN.equals(text)
+                || BTN_NEW_APPLICATIONS.equals(text)
+                || BTN_ALL_APPLICATIONS.equals(text)
+                || BTN_ADMIN_LOGOUT.equals(text)
+                || BTN_MAIN_MENU.equals(text)
+                || "/admin".equals(text);
+    }
     private void answerCallback(String callbackId, String text) {
         AnswerCallbackQuery answer = new AnswerCallbackQuery();
         answer.setCallbackQueryId(callbackId);
