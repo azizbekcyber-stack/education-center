@@ -6,7 +6,6 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import uz.educenter.bot.config.ConfigLoader;
 import uz.educenter.bot.model.Application;
@@ -186,15 +185,54 @@ public class EducationCenterBot extends TelegramLongPollingBot {
             Long courseId = Long.parseLong(parts[1]);
             Long groupId = Long.parseLong(parts[2]);
 
+            sessionManager.clearUserState(telegramId);
             sessionManager.createPendingApplication(telegramId);
+
             PendingApplication pendingApplication = sessionManager.getPendingApplication(telegramId);
             pendingApplication.setCourseId(courseId);
             pendingApplication.setCourseGroupId(groupId);
 
-            sessionManager.setUserState(telegramId, UserState.WAITING_APPLICATION_FULL_NAME);
-            sendMessage(chatId, "Ism-familyangizni kiriting: ⌨");
-            answerCallback(callbackQuery.getId(), "Guruh tanlandi \uD83C\uDF89");
+            sendMessage(
+                    chatId,
+                    "‼\uFE0F Siz haqiqatan ham zayavka qoldirmoqchimisiz?",
+                    KeyboardUtil.applicationConfirmationKeyboard()
+            );
+
+            answerCallback(callbackQuery.getId(), "Guruh tanlandi 🎉");
             return;
+        }
+
+        if (data.startsWith("apply_confirm:")) {
+            String decision = data.split(":")[1];
+
+            if (callbackQuery.getMessage() != null) {
+                clearInlineKeyboard(
+                        chatId,
+                        callbackQuery.getMessage().getMessageId()
+                );
+            }
+
+            if ("yes".equals(decision)) {
+                PendingApplication pendingApplication = sessionManager.getPendingApplication(telegramId);
+
+                if (pendingApplication == null) {
+                    answerCallback(callbackQuery.getId(), "Jarayon topilmadi");
+                    sendMessage(chatId, "Jarayon uzilib qoldi. Qaytadan boshlang.", KeyboardUtil.mainMenuKeyboard());
+                    return;
+                }
+
+                sessionManager.setUserState(telegramId, UserState.WAITING_APPLICATION_FULL_NAME);
+                answerCallback(callbackQuery.getId(), "Davom etamiz ✅");
+                sendMessage(chatId, "Ism-familyangizni kiriting: ⌨");
+                return;
+            }
+
+            if ("no".equals(decision)) {
+                sessionManager.clearPendingApplication(telegramId);
+                sessionManager.clearUserState(telegramId);
+                answerCallback(callbackQuery.getId(), "Bekor qilindi");
+                return;
+            }
         }
 
         if (data.startsWith("app_viewed:")) {
@@ -384,7 +422,7 @@ public class EducationCenterBot extends TelegramLongPollingBot {
 
             sendMessage(
                     chatId,
-                    "✅ Zayavkangiz qabul qilindi.\nAriza ID: " + savedApplication.getId(),
+                    "✅ Zayavkangiz qabul qilindi.\nAriza ID: " + savedApplication.getId() + "\nSizga tez orada aloqaga chiqamiz. Agar kutishni istamasangiz istalgan vaqt ☎\uFE0F Aloqa bo'limi orqali bizga bog'lanishingiz mumkin.",
                     KeyboardUtil.mainMenuKeyboard()
             );
         } catch (Exception e) {
@@ -512,7 +550,7 @@ public class EducationCenterBot extends TelegramLongPollingBot {
         String address = ConfigLoader.get("center.address");
         String locationUrl = ConfigLoader.get("center.location_url");
 
-        String text = "📍 Manzil:\n" + address + "\n\n🔗 Lokatsiya:\n" + locationUrl;
+        String text = "📍 Manzil:\n" + escapeHtml(address) + "\n\n🔗 Lokatsiya:\n" + escapeHtml(locationUrl);
         sendMessage(chatId, text, KeyboardUtil.mainMenuKeyboard());
     }
 
@@ -521,11 +559,14 @@ public class EducationCenterBot extends TelegramLongPollingBot {
         String teacher2 = ConfigLoader.get("teacher2.username");
 
         String text = """
-                ☎️ Ustozlar bilan aloqa:
-                
-                1. 👨🏽‍🏫  %s
-                2. 👨🏽‍🏫  %s
-                """.formatted(teacher1, teacher2);
+            ☎️ Ustozlar bilan aloqa:
+            
+            1. 👨🏽‍🏫 %s
+            2. 👨🏽‍🏫 %s
+            """.formatted(
+                escapeHtml(teacher1),
+                escapeHtml(teacher2)
+        );
 
         sendMessage(chatId, text, KeyboardUtil.mainMenuKeyboard());
     }
@@ -536,7 +577,11 @@ public class EducationCenterBot extends TelegramLongPollingBot {
                 : applicationService.getAllApplications();
 
         if (applications.isEmpty()) {
-            sendMessage(chatId, "❌ Yangi Zayavkalar topilmadi.", KeyboardUtil.adminMenuKeyboard());
+            String emptyMessage = onlyNew
+                    ? "❌ Yangi zayavkalar topilmadi."
+                    : "❌ Zayavkalar topilmadi.";
+
+            sendMessage(chatId, emptyMessage, KeyboardUtil.adminMenuKeyboard());
             return;
         }
 

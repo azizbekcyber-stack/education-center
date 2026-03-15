@@ -159,6 +159,27 @@ public class KeyboardUtil {
         return markup;
     }
 
+    public static InlineKeyboardMarkup applicationConfirmationKeyboard() {
+        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
+
+        InlineKeyboardButton yesButton = new InlineKeyboardButton();
+        yesButton.setText("✅ Ha");
+        yesButton.setCallbackData("apply_confirm:yes");
+
+        InlineKeyboardButton noButton = new InlineKeyboardButton();
+        noButton.setText("❌ Yo‘q");
+        noButton.setCallbackData("apply_confirm:no");
+
+        List<InlineKeyboardButton> row = new ArrayList<>();
+        row.add(yesButton);
+        row.add(noButton);
+
+        rows.add(row);
+        markup.setKeyboard(rows);
+        return markup;
+    }
+
     public static InlineKeyboardMarkup applicationActionsKeyboard(Long applicationId) {
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
