@@ -21,7 +21,6 @@ import uz.educenter.bot.service.ApplicationService;
 import uz.educenter.bot.service.CourseService;
 import uz.educenter.bot.service.UserService;
 import uz.educenter.bot.util.KeyboardUtil;
-
 import java.util.List;
 
 public class EducationCenterBot extends TelegramLongPollingBot {
@@ -93,7 +92,7 @@ public class EducationCenterBot extends TelegramLongPollingBot {
 
     private void handleTextMessage(Message message) {
         Long chatId = message.getChatId();
-        User telegramUser = message.getFrom();
+        org.telegram.telegrambots.meta.api.objects.User telegramUser = message.getFrom();
         Long telegramId = telegramUser.getId();
         String text = message.getText().trim();
 
@@ -329,7 +328,7 @@ public class EducationCenterBot extends TelegramLongPollingBot {
 
         return normalized;
     }
-    private void handleApplicationMessage(Long chatId, Long telegramId, User telegramUser, String messageText) {
+    private void handleApplicationMessage(Long chatId, Long telegramId, org.telegram.telegrambots.meta.api.objects.User telegramUser, String messageText) {
         PendingApplication pendingApplication = sessionManager.getPendingApplication(telegramId);
 
         if (pendingApplication == null) {
@@ -523,10 +522,12 @@ public class EducationCenterBot extends TelegramLongPollingBot {
         for (Application application : applications) {
             Course course = courseService.getCourseById(application.getCourseId());
             CourseGroup group = courseService.getCourseGroupById(application.getCourseGroupId());
+            uz.educenter.bot.model.User user = userService.findById(application.getUserId());
 
             StringBuilder text = new StringBuilder();
             text.append("🆔 Ariza ID: ").append(application.getId()).append("\n");
             text.append("👤 Ism: ").append(application.getFullName()).append("\n");
+            text.append("🔗 Telegram: ").append(formatTelegramUsername(user)).append("\n");
             text.append("📞 Telefon: ").append(application.getPhone()).append("\n");
             text.append("📚 Kurs: ").append(course != null ? course.getName() : application.getCourseId()).append("\n");
             text.append("👥 Guruh: ").append(group != null ? group.getGroupName() : application.getCourseGroupId()).append("\n");
@@ -556,7 +557,7 @@ Bizning xizmatimizdan foydalanish uchun quyidagi bo‘limlardan birini tanlang:
         return normalized.matches("^\\+?\\d{9,15}$");
     }
 
-    private String buildTelegramName(User user) {
+    private String buildTelegramName(org.telegram.telegrambots.meta.api.objects.User user){
         String firstName = user.getFirstName() == null ? "" : user.getFirstName().trim();
         String lastName = user.getLastName() == null ? "" : user.getLastName().trim();
         String fullName = (firstName + " " + lastName).trim();
@@ -648,6 +649,14 @@ Bizning xizmatimizdan foydalanish uchun quyidagi bo‘limlardan birini tanlang:
                 .replace("&", "&amp;")
                 .replace("<", "&lt;")
                 .replace(">", "&gt;");
+    }
+
+    private String formatTelegramUsername(uz.educenter.bot.model.User user) {
+        if (user == null || user.getUsername() == null || user.getUsername().isBlank()) {
+            return "-";
+        }
+
+        return "@" + escapeHtml(user.getUsername());
     }
 
 

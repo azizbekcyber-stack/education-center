@@ -30,6 +30,9 @@ public class UserService {
     public User findByTelegramId(Long telegramId) {
         return userRepository.findByTelegramId(telegramId);
     }
+    public User findById(Long id) {
+        return userRepository.findById(id);
+    }
 
     public boolean updatePhone(Long userId, String phone) {
         return userRepository.updatePhone(userId, phone);

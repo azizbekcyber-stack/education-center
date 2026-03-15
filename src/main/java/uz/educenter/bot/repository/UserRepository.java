@@ -35,6 +35,31 @@ public class UserRepository {
         return null;
     }
 
+    public User findById(Long id) {
+        String sql = """
+            SELECT id, telegram_id, full_name, username, phone, created_at
+            FROM users
+            WHERE id = ?
+            """;
+
+        try (Connection connection = DatabaseConfig.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+
+            preparedStatement.setLong(1, id);
+
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    return mapRow(resultSet);
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
     public User save(User user) {
         String sql = """
                 INSERT INTO users (telegram_id, full_name, username, phone)
