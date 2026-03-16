@@ -444,7 +444,11 @@ public class StudentHandler {
         String address = ConfigLoader.get("center.address");
         String locationUrl = ConfigLoader.get("center.location_url");
 
-        String text = "📍 Manzil:\n" + escapeHtml(address) + "\n\n🔗 Lokatsiya:\n" + escapeHtml(locationUrl);
+        String text =
+                "📍 <b>Manzil:</b>\n" +
+                        escapeHtml(address) +
+                        "\n\n🗺 <a href=\"" + escapeHtmlAttribute(locationUrl) + "\">Google Maps’da ochish</a>";
+
         botMessageService.sendMessage(chatId, text, KeyboardUtil.mainMenuKeyboard());
     }
 
@@ -601,6 +605,17 @@ public class StudentHandler {
 
         return text
                 .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;");
+    }
+    private String escapeHtmlAttribute(String text) {
+        if (text == null) {
+            return "";
+        }
+
+        return text
+                .replace("&", "&amp;")
+                .replace("\"", "&quot;")
                 .replace("<", "&lt;")
                 .replace(">", "&gt;");
     }
