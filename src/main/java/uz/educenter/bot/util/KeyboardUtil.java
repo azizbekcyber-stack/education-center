@@ -1,19 +1,14 @@
 package uz.educenter.bot.util;
 
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
-import uz.educenter.bot.model.Course;
-import uz.educenter.bot.model.CourseGroup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
-
-import java.util.ArrayList;
-import java.util.List;
+import uz.educenter.bot.model.Course;
+import uz.educenter.bot.model.CourseGroup;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -98,6 +93,43 @@ public class KeyboardUtil {
         return removeKeyboard;
     }
 
+    public static ReplyKeyboardMarkup cancelKeyboard() {
+        ReplyKeyboardMarkup markup = new ReplyKeyboardMarkup();
+        markup.setResizeKeyboard(true);
+        markup.setOneTimeKeyboard(true);
+
+        List<KeyboardRow> keyboard = new ArrayList<>();
+
+        KeyboardRow row = new KeyboardRow();
+        row.add("❌ Bekor qilish");
+
+        keyboard.add(row);
+        markup.setKeyboard(keyboard);
+        return markup;
+    }
+
+    public static ReplyKeyboardMarkup phoneRequestKeyboardWithCancel() {
+        KeyboardButton contactButton = new KeyboardButton("📱 Raqamni yuborish");
+        contactButton.setRequestContact(true);
+
+        KeyboardRow row1 = new KeyboardRow();
+        row1.add(contactButton);
+
+        KeyboardRow row2 = new KeyboardRow();
+        row2.add("❌ Bekor qilish");
+
+        List<KeyboardRow> rows = new ArrayList<>();
+        rows.add(row1);
+        rows.add(row2);
+
+        ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
+        keyboardMarkup.setResizeKeyboard(true);
+        keyboardMarkup.setOneTimeKeyboard(true);
+        keyboardMarkup.setKeyboard(rows);
+
+        return keyboardMarkup;
+    }
+
     public static InlineKeyboardMarkup coursesKeyboard(List<Course> courses) {
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
@@ -139,11 +171,10 @@ public class KeyboardUtil {
             detailsRow.add(detailsButton);
             rows.add(detailsRow);
         }
+
         markup.setKeyboard(rows);
         return markup;
     }
-
-
 
     public static InlineKeyboardMarkup courseGroupsKeyboard(Long courseId, List<CourseGroup> groups) {
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
@@ -182,42 +213,6 @@ public class KeyboardUtil {
         rows.add(row);
         markup.setKeyboard(rows);
         return markup;
-    }
-    public static ReplyKeyboardMarkup cancelKeyboard() {
-        ReplyKeyboardMarkup markup = new ReplyKeyboardMarkup();
-        markup.setResizeKeyboard(true);
-        markup.setOneTimeKeyboard(true);
-
-        List<KeyboardRow> keyboard = new ArrayList<>();
-
-        KeyboardRow row = new KeyboardRow();
-        row.add("❌ Bekor qilish");
-
-        keyboard.add(row);
-        markup.setKeyboard(keyboard);
-        return markup;
-    }
-
-    public static ReplyKeyboardMarkup phoneRequestKeyboardWithCancel() {
-        KeyboardButton contactButton = new KeyboardButton("📱 Raqamni yuborish");
-        contactButton.setRequestContact(true);
-
-        KeyboardRow row1 = new KeyboardRow();
-        row1.add(contactButton);
-
-        KeyboardRow row2 = new KeyboardRow();
-        row2.add("❌ Bekor qilish");
-
-        List<KeyboardRow> rows = new ArrayList<>();
-        rows.add(row1);
-        rows.add(row2);
-
-        ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
-        keyboardMarkup.setResizeKeyboard(true);
-        keyboardMarkup.setOneTimeKeyboard(true);
-        keyboardMarkup.setKeyboard(rows);
-
-        return keyboardMarkup;
     }
 
     public static InlineKeyboardMarkup adminGroupConfirmKeyboard() {
